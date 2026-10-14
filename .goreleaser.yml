@@ -1,0 +1,84 @@
+# GoReleaser config — builds cross-platform `blo` binaries, archives,
+# checksums, a GitHub release, and updates a Homebrew tap.
+# Docs: https://goreleaser.com
+version: 2
+
+project_name: blo-cli
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: blo
+    binary: blo
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X github.com/kathar0s/blo-cli/cmd.Version={{.Version}}
+
+archives:
+  - id: blo
+    name_template: >-
+      blo_{{ .Version }}_
+      {{- if eq .Os "darwin" }}macOS{{ else }}{{ .Os }}{{ end }}_
+      {{- .Arch }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+brews:
+  - name: blo
+    # kathar0s/homebrew-tap repo와 HOMEBREW_TAP_TOKEN이 준비되기 전까지는
+    # tap에 formula를 push하지 않는다(생성만). 준비되면 이 줄을 제거한다.
+    skip_upload: "true"
+    repository:
+      owner: kathar0s
+      name: homebrew-tap
+    directory: Formula
+    homepage: "https://github.com/kathar0s/blo-cli"
+    description: "빌링온(Billing-On) AWS 비용을 조회·분석하는 CLI"
+    license: "MIT"
+    test: |
+      system "#{bin}/blo", "--version"
+    install: |
+      bin.install "blo"
+
+release:
+  github:
+    owner: kathar0s
+    name: blo-cli
+  prerelease: auto
+  footer: |
+    ---
+    설치 방법은 [README](https://github.com/kathar0s/blo-cli#설치)를 참고하세요.

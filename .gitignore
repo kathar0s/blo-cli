@@ -1,0 +1,21 @@
+# build output
+/bin/
+/dist/
+
+# captured traffic & site JS (sensitive: session data + reverse-engineering material)
+/_captures/
+*.har
+
+# local reverse-engineering / dev notes — not for public distribution
+ANALYSIS.md
+DEVNOTES.md
+
+# local creds (live in ~/.config/billing-on, never in repo)
+credentials.json
+
+# OS / editor
+.DS_Store
+
+# local agent/tooling state (never for distribution)
+.claude/
+.omc/
